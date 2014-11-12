@@ -7,7 +7,7 @@ require 'parallel'
 cpus    = 4
 forward = 'GCGGCTTATCARRTNGARGG'
 reverse = 'GTGTAACACYMNGGYTCRTT'
-out_dir = 'fungi_2014-10-22'
+out_dir = 'fungi_2014-11-11'
 
 samples = CSV.read("fungi.txt", col_sep: "\s")
 
