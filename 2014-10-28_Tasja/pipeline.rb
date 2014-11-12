@@ -66,7 +66,7 @@ Parallel.each(samples, in_processes: cpus) do |sample|
   dereplicate_seq.
   write_table(output: "p3_derep_#{sample[0]}.tab", force: true, header: true, keys: [:SEQ_NAME, :SEQ, :SEQ_COUNT])
 
-#  p3.run(progress: false, verbose: false, output_dir: out_dir, report: "p3_#{sample[0]}.html")
+  p3.run(progress: false, verbose: false, output_dir: out_dir, report: "p3_#{sample[0]}.html")
 
   $stderr.puts "Done cleaning and dereplicating #{sample[0]}"
 end
