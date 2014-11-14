@@ -114,7 +114,8 @@ collect_otus.
 grab(exact: true, keys: :RECORD_TYPE, select: 'OTU').
 merge_table(input: "#{out_dir}/p4_classification_table.txt", key: :OTU, keys: [:OTU, :TAXONOMY]).
 collapse_otus.
-write_table(header: true, output: "p6_otu_table.txt", skip: [:RECORD_TYPE], force: true)
+write_table(header: true, output: "p6_otu_table.txt", skip: [:RECORD_TYPE], force: true).
+write_biom(output: "p6_otu_table.biom", force: true)
 
 p6.run(progress: true, verbose: false, output_dir: out_dir, report: "p6.html")
 
