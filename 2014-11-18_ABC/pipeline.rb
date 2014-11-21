@@ -8,7 +8,7 @@ cpus     = 20
 #forward  = "CCTAYGGGRBGCASCAG"     # 341
 forward  = "GTGCCAGCMGCCGCGGTAA"   # 515
 reverse  = "GGACTACHVGGGTWTCTAAT"
-out_dir  = "Result-2014-11-18"
+out_dir  = "Result-2014-11-21"
 
 samples = CSV.read("samples.txt", col_sep: "\s")
 
@@ -115,6 +115,7 @@ collect_otus.
 grab(exact: true, keys: :RECORD_TYPE, select: 'OTU').
 merge_table(input: "#{out_dir}/p4_classification_table.txt", key: :OTU, keys: [:OTU, :TAXONOMY]).
 collapse_otus.
+plot_heatmap(skip: [:OTU, :TAXONOMY],terminal: :png, output: "p6_heatmap.png", force: true, xlabel: "Samples", ylabel: "OTUs").
 write_table(header: true, output: "p6_otu_table.txt", skip: [:RECORD_TYPE], force: true).
 write_biom(output: "p6_otu_table.biom", force: true)
 
