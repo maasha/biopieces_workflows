@@ -7,8 +7,8 @@ require 'parallel'
 cpus     = 20
 #forward  = "CCTAYGGGRBGCASCAG"     # 341
 forward  = "GTGCCAGCMGCCGCGGTAA"   # 515
-reverse  = "GGACTACHVGGGTWTCTAAT"
-out_dir  = "Result-2014-11-21"
+reverse  = "GGACTACHVGGGTWTCTAAT"  # 806
+out_dir  = "Result-2014-11-26.2"
 
 samples = CSV.read("samples.txt", col_sep: "\s")
 
@@ -16,7 +16,7 @@ Parallel.each(samples, in_processes: cpus) do |sample|
   $stderr.puts "Start count reads #{sample[0]}"
 
   p1 = BP.new.
-  read_fastq(input: sample[1], input2: sample[2]).
+  read_fastq(input: sample[1], input2: sample[2], encoding: :base_33).
   count.
   add_key(key: :SAMPLE, value: sample[0]).
   grab(exact: true, keys: :RECORD_TYPE, select: 'count').
@@ -43,7 +43,7 @@ Parallel.each(samples, in_processes: cpus) do |sample|
   $stderr.puts "Start cleaning and dereplicating #{sample[0]}"
 
   p3 = BP.new.
-  read_fastq(input: sample[1], input2: sample[2]).
+  read_fastq(input: sample[1], input2: sample[2], encoding: :base_33).
   plot_scores(terminal: :png, count: true, output: "p3_scores_pretrim_#{sample[0]}.png", force: true).
   clip_primer(primer: forward,  direction: :forward, mismatch_percent: 20, search_distance: 50).
   plot_histogram(key: :CLIP_PRIMER_POS, terminal: :png, output: "p3_clip_primer_pos_forward_#{sample[0]}.png", force: true).
@@ -78,7 +78,7 @@ p4 = BP.new.
 read_table(input: "#{out_dir}/p3_derep*.tab", delimiter: "\t").
 grab(evaluate: ":SEQ_COUNT > 1").
 sort(key: :SEQ_COUNT, reverse: true).
-cluster_otus.
+cluster_otus(identity: 0.985).
 uchime_ref.
 add_key(key: :SEQ_NAME, prefix: "OTU_").
 write_fasta(output: "p4_otus.fna", force: true).
@@ -96,7 +96,7 @@ Parallel.each(samples, in_processes: cpus) do |sample|
   p5 = BP.new.
   read_table(input: "#{out_dir}/p3_derep_#{sample[0]}.tab", delimiter: "\t").
   merge_values(keys: [:SEQ_NAME, :SEQ_COUNT], delimiter: ":count=").
-  usearch_global(database: "#{out_dir}/p4_otus.fna", identity: 0.97, strand: "plus").
+  usearch_global(database: "#{out_dir}/p4_otus.fna", identity: 0.985, strand: "plus").
   grab(exact: true, keys: :TYPE, select: 'H').
   add_key(key: :SAMPLE, value: sample[0]).
   write_table(output: "p5_usearch_global_#{sample[0]}.tab", header: true, force: true, keys: [:TYPE, :Q_ID, :S_ID, :SAMPLE])
