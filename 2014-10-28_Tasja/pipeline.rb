@@ -7,7 +7,7 @@ require 'parallel'
 cpus     = 20
 forward  = "CCTAYGGGRBGCASCAG"
 reverse  = "GGACTACHVGGGTWTCTAAT"
-out_dir  = "Result-2014-11-12"
+out_dir  = "Result-2014-12-10"
 
 samples = CSV.read("samples.txt", col_sep: "\s")
 
@@ -21,7 +21,7 @@ Parallel.each(samples, in_processes: cpus) do |sample|
   grab(exact: true, keys: :RECORD_TYPE, select: 'count').
   write_table(header: true, output: "p1_#{sample[0]}_count.tab", force: true)
 
-  p1.run(progress: false, output_dir: out_dir, report: "p1_#{sample[0]}.html")
+#  p1.run(progress: false, output_dir: out_dir, report: "p1_#{sample[0]}.html")
 
   $stderr.puts "Done counting reads for #{sample[0]}"
 end
@@ -34,7 +34,7 @@ sort(key: :COUNT, reverse: true).
 plot_histogram(key: :SAMPLE, value: :COUNT, output: "p2_count.png", terminal: :png, force: true).
 write_table(header: true, pretty: true, commify: true, output: "p2_count.tab", force: true, skip: [:RECORD_TYPE])
 
-p2.run(progress: true, output_dir: out_dir, report: "p2.html")
+# p2.run(progress: true, output_dir: out_dir, report: "p2.html")
 
 $stderr.puts "Done collecting read counts"
 
@@ -66,7 +66,7 @@ Parallel.each(samples, in_processes: cpus) do |sample|
   dereplicate_seq.
   write_table(output: "p3_derep_#{sample[0]}.tab", force: true, header: true, keys: [:SEQ_NAME, :SEQ, :SEQ_COUNT])
 
-  p3.run(progress: false, verbose: false, output_dir: out_dir, report: "p3_#{sample[0]}.html")
+#  p3.run(progress: false, verbose: false, output_dir: out_dir, report: "p3_#{sample[0]}.html")
 
   $stderr.puts "Done cleaning and dereplicating #{sample[0]}"
 end
@@ -77,15 +77,15 @@ p4 = BP.new.
 read_table(input: "#{out_dir}/p3_derep*.tab", delimiter: "\t").
 grab(evaluate: ":SEQ_COUNT > 1").
 sort(key: :SEQ_COUNT, reverse: true).
-cluster_otus.
+cluster_otus(identity: 0.99).
 uchime_ref.
 add_key(key: :SEQ_NAME, prefix: "OTU_").
 write_fasta(output: "p4_otus.fna", force: true).
-classify_seq.
+classify_seq_mothur.
 grab(exact: true, keys: :RECORD_TYPE, select: "taxonomy").
 write_table(output: "p4_classification_table.txt", header: true, force: true, skip: [:RECORD_TYPE])
 
-p4.run(progress: true, verbose: false, output_dir: out_dir, report: "p4.html")
+#p4.run(progress: true, verbose: false, output_dir: out_dir, report: "p4.html")
 
 $stderr.puts "Done OTU clustering and chimera filtering"
 
@@ -95,12 +95,12 @@ Parallel.each(samples, in_processes: cpus) do |sample|
   p5 = BP.new.
   read_table(input: "#{out_dir}/p3_derep_#{sample[0]}.tab", delimiter: "\t").
   merge_values(keys: [:SEQ_NAME, :SEQ_COUNT], delimiter: ":count=").
-  usearch_global(database: "#{out_dir}/p4_otus.fna", identity: 0.97, strand: "plus").
+  usearch_global(database: "#{out_dir}/p4_otus.fna", identity: 0.99, strand: "plus").
   grab(exact: true, keys: :TYPE, select: 'H').
   add_key(key: :SAMPLE, value: sample[0]).
   write_table(output: "p5_usearch_global_#{sample[0]}.tab", header: true, force: true, keys: [:TYPE, :Q_ID, :S_ID, :SAMPLE])
 
-  p5.run(progress: false, verbose: false, output_dir: out_dir, report: "p5_#{sample[0]}.html")
+#  p5.run(progress: false, verbose: false, output_dir: out_dir, report: "p5_#{sample[0]}.html")
 
   $stderr.puts "Done remapping samples to OTUs for #{sample[0]}"
 end

@@ -8,7 +8,7 @@ cpus     = 20
 #forward  = "CCTAYGGGRBGCASCAG"     # 341
 forward  = "GTGCCAGCMGCCGCGGTAA"   # 515
 reverse  = "GGACTACHVGGGTWTCTAAT"  # 806
-out_dir  = "Result-2014-11-26.2"
+out_dir  = "Result-2014-12-19_MyRDP"
 
 samples = CSV.read("samples.txt", col_sep: "\s")
 
@@ -35,7 +35,7 @@ sort(key: :COUNT, reverse: true).
 plot_histogram(key: :SAMPLE, value: :COUNT, output: "p2_count.png", terminal: :png, force: true).
 write_table(header: true, pretty: true, commify: true, output: "p2_count.tab", force: true, skip: [:RECORD_TYPE])
 
-p2.run(progress: true, output_dir: out_dir, report: "p2.html")
+p2.run(progress: true, output_dir: out_dir, report: "p2.html", email: "mail@maasha.dk")
 
 $stderr.puts "Done collecting read counts"
 
@@ -84,7 +84,7 @@ add_key(key: :SEQ_NAME, prefix: "OTU_").
 write_fasta(output: "p4_otus.fna", force: true).
 classify_seq.
 grab(exact: true, keys: :RECORD_TYPE, select: "taxonomy").
-write_table(output: "p4_classification_table.txt", header: true, force: true, skip: [:RECORD_TYPE])
+write_table(output: "p4_classification_table.txt", header: true, force: true, keys: [:SEQ_NAME, :TAXONOMY])
 
 p4.run(progress: true, verbose: false, output_dir: out_dir, report: "p4.html")
 
@@ -113,12 +113,12 @@ read_table(input: "#{out_dir}/p5_usearch_global_*.tab", delimiter: "\t").
 split_values(key: :Q_ID, keys: [:Q_ID, :SEQ_COUNT], delimiter: ":count=").
 collect_otus.
 grab(exact: true, keys: :RECORD_TYPE, select: 'OTU').
-merge_table(input: "#{out_dir}/p4_classification_table.txt", key: :OTU, keys: [:OTU, :TAXONOMY]).
+merge_table(input: "#{out_dir}/p4_classification_table.txt", key: :OTU, keys: [:OTU, :TAXONOMY], delimiter: "\t").
 collapse_otus.
 plot_heatmap(skip: [:OTU, :TAXONOMY],terminal: :png, output: "p6_heatmap.png", force: true, xlabel: "Samples", ylabel: "OTUs").
-write_table(header: true, output: "p6_otu_table.txt", skip: [:RECORD_TYPE], force: true).
-write_biom(output: "p6_otu_table.biom", force: true)
+write_table(header: true, output: "p6_otu_table.txt", skip: [:RECORD_TYPE], force: true)
+#write_biom(output: "p6_otu_table.biom", force: true)
 
-p6.run(progress: true, verbose: false, output_dir: out_dir, report: "p6.html")
+p6.run(progress: true, verbose: false, output_dir: out_dir, report: "p6.html", email: "mail@maasha.dk")
 
 $stderr.puts "Done collecting OTU table"
