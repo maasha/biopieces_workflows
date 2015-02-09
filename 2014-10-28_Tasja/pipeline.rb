@@ -7,7 +7,7 @@ require 'parallel'
 cpus     = 20
 forward  = "CCTAYGGGRBGCASCAG"
 reverse  = "GGACTACHVGGGTWTCTAAT"
-out_dir  = "Result-2014-12-10"
+out_dir  = "Result-2015-01-31"
 
 samples = CSV.read("samples.txt", col_sep: "\s")
 
@@ -71,7 +71,7 @@ Parallel.each(samples, in_processes: cpus) do |sample|
   $stderr.puts "Done cleaning and dereplicating #{sample[0]}"
 end
 
-$stderr.puts "Start OTU clustering and chimera filtering"
+# $stderr.puts "Start OTU clustering and chimera filtering"
 
 p4 = BP.new.
 read_table(input: "#{out_dir}/p3_derep*.tab", delimiter: "\t").
@@ -81,11 +81,11 @@ cluster_otus(identity: 0.99).
 uchime_ref.
 add_key(key: :SEQ_NAME, prefix: "OTU_").
 write_fasta(output: "p4_otus.fna", force: true).
-classify_seq_mothur.
+classify_seq.
 grab(exact: true, keys: :RECORD_TYPE, select: "taxonomy").
 write_table(output: "p4_classification_table.txt", header: true, force: true, skip: [:RECORD_TYPE])
 
-#p4.run(progress: true, verbose: false, output_dir: out_dir, report: "p4.html")
+# p4.run(progress: true, verbose: false, output_dir: out_dir, report: "p4.html")
 
 $stderr.puts "Done OTU clustering and chimera filtering"
 
@@ -114,9 +114,8 @@ collect_otus.
 grab(exact: true, keys: :RECORD_TYPE, select: 'OTU').
 merge_table(input: "#{out_dir}/p4_classification_table.txt", key: :OTU, keys: [:OTU, :TAXONOMY]).
 collapse_otus.
-write_table(header: true, output: "p6_otu_table.txt", skip: [:RECORD_TYPE], force: true).
-write_biom(output: "p6_otu_table.biom", force: true)
+write_table(header: true, output: "p6_otu_table.txt", skip: [:RECORD_TYPE], force: true)
 
-p6.run(progress: true, verbose: false, output_dir: out_dir, report: "p6.html")
+p6.run(progress: true, verbose: false, output_dir: out_dir, report: "p6.html", email: "mail@maasha.dk", subject: "Tasja done")
 
 $stderr.puts "Done collecting OTU table"
