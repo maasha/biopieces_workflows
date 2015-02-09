@@ -8,9 +8,10 @@ cpus     = 20
 #forward  = "CCTAYGGGRBGCASCAG"     # 341
 forward  = "GTGCCAGCMGCCGCGGTAA"   # 515
 reverse  = "GGACTACHVGGGTWTCTAAT"  # 806
-out_dir  = "Result-2014-12-19_MyRDP"
+out_dir  = "Result-2015-02-06"
 
-samples = CSV.read("samples.txt", col_sep: "\s")
+run_name = File.expand_path(__FILE__).split(File::SEPARATOR)[-2]
+samples  = CSV.read("samples.txt", col_sep: "\s")
 
 Parallel.each(samples, in_processes: cpus) do |sample|
   $stderr.puts "Start count reads #{sample[0]}"
@@ -35,7 +36,7 @@ sort(key: :COUNT, reverse: true).
 plot_histogram(key: :SAMPLE, value: :COUNT, output: "p2_count.png", terminal: :png, force: true).
 write_table(header: true, pretty: true, commify: true, output: "p2_count.tab", force: true, skip: [:RECORD_TYPE])
 
-p2.run(progress: true, output_dir: out_dir, report: "p2.html", email: "mail@maasha.dk")
+p2.run(progress: true, output_dir: out_dir, report: "p2.html")
 
 $stderr.puts "Done collecting read counts"
 
@@ -80,6 +81,7 @@ grab(evaluate: ":SEQ_COUNT > 1").
 sort(key: :SEQ_COUNT, reverse: true).
 cluster_otus(identity: 0.985).
 uchime_ref.
+write_table(output: "p4_original_OTU_names.txt", header: true, force: true, keys: [:SEQ_NAME]).
 add_key(key: :SEQ_NAME, prefix: "OTU_").
 write_fasta(output: "p4_otus.fna", force: true).
 classify_seq.
@@ -117,8 +119,7 @@ merge_table(input: "#{out_dir}/p4_classification_table.txt", key: :OTU, keys: [:
 collapse_otus.
 plot_heatmap(skip: [:OTU, :TAXONOMY],terminal: :png, output: "p6_heatmap.png", force: true, xlabel: "Samples", ylabel: "OTUs").
 write_table(header: true, output: "p6_otu_table.txt", skip: [:RECORD_TYPE], force: true)
-#write_biom(output: "p6_otu_table.biom", force: true)
 
-p6.run(progress: true, verbose: false, output_dir: out_dir, report: "p6.html", email: "mail@maasha.dk")
+p6.run(progress: true, verbose: false, output_dir: out_dir, report: "p6.html", email: "mail@maasha.dk", subject: "#{run_name} done")
 
 $stderr.puts "Done collecting OTU table"
