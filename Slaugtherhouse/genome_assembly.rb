@@ -4,10 +4,12 @@ require 'biopieces'
 require 'parallel'
 
 cpus    = 10
-out_dir = "Result-2015-02-06_2"
+out_dir = "Result-2015-02-24"
 
-forward = "TGCCGTCTTCTGCTTG" # i7
-reverse = "AATGATACGGCGACCA" # i5
+# GTCTCGTGGGCTCGGAGATGTGTATAAGAGACAG # i7
+# TCGTCGGCAGCGTCAGATGTGTATAAGAGACAG  # i5
+forward = "GATGTGTATAAGAGACAG" # i7
+reverse = "GATGTGTATAAGAGACAG" # i5
 
 pairs = []
 Dir["Fastq/*Slaughterhouse*"].each_slice(2) { |pair| pairs << pair.sort }

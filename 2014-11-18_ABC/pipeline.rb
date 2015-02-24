@@ -8,7 +8,7 @@ cpus     = 20
 #forward  = "CCTAYGGGRBGCASCAG"     # 341
 forward  = "GTGCCAGCMGCCGCGGTAA"   # 515
 reverse  = "GGACTACHVGGGTWTCTAAT"  # 806
-out_dir  = "Result-2015-02-06"
+out_dir  = "Result-2015-02-24"
 
 run_name = File.expand_path(__FILE__).split(File::SEPARATOR)[-2]
 samples  = CSV.read("samples.txt", col_sep: "\s")
@@ -58,6 +58,7 @@ Parallel.each(samples, in_processes: cpus) do |sample|
   assemble_pairs(overlap_min: 40, mismatch_percent: 40, reverse_complement: true).
   plot_histogram(key: :OVERLAP_LEN, terminal: :png, output: "p3_overlap_len_#{sample[0]}.png", force: true).
   plot_histogram(key: :HAMMING_DIST, terminal: :png, output: "p3_hamming_dist_#{sample[0]}.png", force: true).
+  plot_residue_distribution(terminal: :png, count: true, output: "p3_residue_dist_postassembly_#{sample[0]}.png", force: true).
   mean_scores.
   grab(evaluate: ":SCORES_MEAN >= 25").
   mean_scores(local: true).
