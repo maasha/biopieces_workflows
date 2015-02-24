@@ -117,7 +117,7 @@ collect_otus.
 grab(exact: true, keys: :RECORD_TYPE, select: 'OTU').
 merge_table(input: "#{out_dir}/p4_classification_table.txt", key: :OTU, keys: [:OTU, :TAXONOMY], delimiter: "\t").
 collapse_otus.
-plot_heatmap(skip: [:OTU, :TAXONOMY],terminal: :png, output: "p6_heatmap.png", force: true, xlabel: "Samples", ylabel: "OTUs").
+plot_heatmap(skip: [:RECORD_TYPE, :OTU, :TAXONOMY],terminal: :png, output: "p6_heatmap.png", force: true, xlabel: "Samples", ylabel: "OTUs", logscale: true).
 write_table(header: true, output: "p6_otu_table.txt", skip: [:RECORD_TYPE], force: true)
 
 p6.run(progress: true, verbose: false, output_dir: out_dir, report: "p6.html", email: "mail@maasha.dk", subject: "#{run_name} done")
