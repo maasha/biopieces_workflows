@@ -8,7 +8,7 @@ cpus     = 20
 forward  = "CCTAYGGGRBGCASCAG"     # 341
 #forward  = "GTGCCAGCMGCCGCGGTAA"   # 515
 reverse  = "GGACTACHVGGGTWTCTAAT"  # 806
-out_dir  = "Result-2015-02-24"
+out_dir  = "Result-2015-02-26"
 
 run_name = File.expand_path(__FILE__).split(File::SEPARATOR)[-2]
 samples  = CSV.read("samples.txt", col_sep: "\s")
@@ -45,7 +45,9 @@ Parallel.each(samples, in_processes: cpus) do |sample|
 
   p3 = BP.new.
   read_fastq(input: sample[1], input2: sample[2], encoding: :base_33).
+  merge_pair_seq.
   plot_scores(terminal: :png, count: true, output: "p3_scores_pretrim_#{sample[0]}.png", force: true).
+  split_pair_seq.
   clip_primer(primer: forward,  direction: :forward, mismatch_percent: 20, search_distance: 50).
   plot_histogram(key: :CLIP_PRIMER_POS, terminal: :png, output: "p3_clip_primer_pos_forward_#{sample[0]}.png", force: true).
   clip_primer(primer: reverse, direction: :forward, mismatch_percent: 20, search_distance: 100).

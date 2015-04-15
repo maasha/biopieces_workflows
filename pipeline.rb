@@ -45,7 +45,9 @@ Parallel.each(samples, in_processes: cpus) do |sample|
 
   p3 = BP.new.
   read_fastq(input: sample[1], input2: sample[2], encoding: :base_33).
+  merge_pair_seq.
   plot_scores(terminal: :png, count: true, output: "p3_scores_pretrim_#{sample[0]}.png", force: true).
+  split_pair_seq.
   clip_primer(primer: forward,  direction: :forward, mismatch_percent: 20, search_distance: 50).
   plot_histogram(key: :CLIP_PRIMER_POS, terminal: :png, output: "p3_clip_primer_pos_forward_#{sample[0]}.png", force: true).
   clip_primer(primer: reverse, direction: :forward, mismatch_percent: 20, search_distance: 100).
@@ -54,7 +56,9 @@ Parallel.each(samples, in_processes: cpus) do |sample|
   trim_primer(primer: reverse, direction: :forward, mismatch_percent: 20, overlap_min: 1).
   trim_seq.
   plot_histogram(key: :SEQ_LEN, terminal: :png, output: "p3_lendist_posttrim_#{sample[0]}.png", force: true).
+  merge_pair_seq.
   plot_scores(terminal: :png, count: true, output: "p3_scores_posttrim_#{sample[0]}.png", force: true).
+  split_pair_seq.
   assemble_pairs(overlap_min: 40, mismatch_percent: 40, reverse_complement: true).
   plot_histogram(key: :OVERLAP_LEN, terminal: :png, output: "p3_overlap_len_#{sample[0]}.png", force: true).
   plot_histogram(key: :HAMMING_DIST, terminal: :png, output: "p3_hamming_dist_#{sample[0]}.png", force: true).
@@ -120,6 +124,18 @@ collapse_otus.
 plot_heatmap(skip: [:RECORD_TYPE, :OTU, :TAXONOMY],terminal: :png, output: "p6_heatmap.png", force: true, xlabel: "Samples", ylabel: "OTUs", logscale: true).
 write_table(header: true, output: "p6_otu_table.txt", skip: [:RECORD_TYPE], force: true)
 
-p6.run(progress: true, verbose: false, output_dir: out_dir, report: "p6.html", email: "mail@maasha.dk", subject: "#{run_name} done")
+p6.run(progress: true, verbose: false, output_dir: out_dir, report: "p6.html")
 
 $stderr.puts "Done collecting OTU table"
+
+$stderr.puts "Start creating tree"
+
+p7 = BP.new.
+read_fasta(input: "#{out_dir}/p4_otus.fna").
+align_seq_mothur.
+degap_seq(columns_only: true).
+write_fasta(output: "p7_aligned.fna", force: true).
+write_tree(output: "p7.tree", force: true).
+run(verbose: true, output_dir: out_dir, report: "p7.html", email: "mail@maasha.dk", subject: "#{run_name} done")
+
+$stderr.puts "Done creating tree"
