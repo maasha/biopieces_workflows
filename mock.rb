@@ -8,37 +8,10 @@ cpus     = 20
 forward  = "CCTAYGGGRBGCASCAG"     # 341
 #forward  = "GTGCCAGCMGCCGCGGTAA"   # 515
 reverse  = "GGACTACHVGGGTWTCTAAT"  # 806
-out_dir  = "Result-2015-02-24"
+out_dir  = "Mock-2015-09-07"
 
 run_name = File.expand_path(__FILE__).split(File::SEPARATOR)[-2]
-samples  = CSV.read("samples.txt", col_sep: "\s")
-
-Parallel.each(samples, in_processes: cpus) do |sample|
-  $stderr.puts "Start count reads #{sample[0]}"
-
-  p1 = BP.new.
-  read_fastq(input: sample[1], input2: sample[2], encoding: :base_33).
-  count.
-  add_key(key: :SAMPLE, value: sample[0]).
-  grab(exact: true, keys: :RECORD_TYPE, select: 'count').
-  write_table(header: true, output: "p1_#{sample[0]}_count.tab", force: true)
-
-  p1.run(progress: false, output_dir: out_dir, report: "p1_#{sample[0]}.html")
-
-  $stderr.puts "Done counting reads for #{sample[0]}"
-end
-
-$stderr.puts "Start collecting read counts"
-
-p2 = BP.new.
-read_table(input: "#{out_dir}/p1*_count.tab", delimiter: "\t").
-sort(key: :COUNT, reverse: true).
-plot_histogram(key: :SAMPLE, value: :COUNT, output: "p2_count.png", terminal: :png, force: true).
-write_table(header: true, pretty: true, commify: true, output: "p2_count.tab", force: true, skip: [:RECORD_TYPE])
-
-p2.run(progress: true, output_dir: out_dir, report: "p2.html")
-
-$stderr.puts "Done collecting read counts"
+samples  = CSV.read("mock_sample.txt", col_sep: "\s")
 
 Parallel.each(samples, in_processes: cpus) do |sample|
   $stderr.puts "Start cleaning and dereplicating #{sample[0]}"
@@ -56,10 +29,8 @@ Parallel.each(samples, in_processes: cpus) do |sample|
   trim_primer(primer: reverse, direction: :forward, mismatch_percent: 20, overlap_min: 1).
   trim_seq.
   plot_histogram(key: :SEQ_LEN, terminal: :png, output: "p3_lendist_posttrim_#{sample[0]}.png", force: true).
-  merge_pair_seq.
   plot_scores(terminal: :png, count: true, output: "p3_scores_posttrim_#{sample[0]}.png", force: true).
-  split_pair_seq.
-  assemble_pairs(overlap_min: 40, mismatch_percent: 40, reverse_complement: true).
+  assemble_pairs(overlap_min: 1, mismatch_percent: 40, merge_unassembled: true, reverse_complement: true).
   plot_histogram(key: :OVERLAP_LEN, terminal: :png, output: "p3_overlap_len_#{sample[0]}.png", force: true).
   plot_histogram(key: :HAMMING_DIST, terminal: :png, output: "p3_hamming_dist_#{sample[0]}.png", force: true).
   plot_residue_distribution(terminal: :png, count: true, output: "p3_residue_dist_postassembly_#{sample[0]}.png", force: true).
@@ -129,13 +100,3 @@ p6.run(progress: true, verbose: false, output_dir: out_dir, report: "p6.html")
 $stderr.puts "Done collecting OTU table"
 
 $stderr.puts "Start creating tree"
-
-p7 = BP.new.
-read_fasta(input: "#{out_dir}/p4_otus.fna").
-align_seq_mothur.
-degap_seq(columns_only: true).
-write_fasta(output: "p7_aligned.fna", force: true).
-write_tree(output: "p7.tree", force: true).
-run(verbose: true, output_dir: out_dir, report: "p7.html", email: "mail@maasha.dk", subject: "#{run_name} done")
-
-$stderr.puts "Done creating tree"
