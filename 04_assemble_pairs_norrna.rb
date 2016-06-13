@@ -4,7 +4,7 @@
 # allowing for unassembled reads and write a table of IDs for read pairs that
 # were assembled.
 #
-# Next assmbled and singleton reads are seperated.
+# Next assmbled and singleton reads are separated.
 
 require 'biopieces'
 require 'parallel'
